@@ -65,7 +65,10 @@ f, ax = plt.subplots(2,2,figsize=(10,10))
 plt.subplots_adjust(bottom = 0.25)
 
 ax_slider = f.add_axes([0.25, 0.1, 0.65, 0.03])
-imgslider = Slider(ax=ax_slider, label='Frame Number', valmin=0, valmax=1000, valinit=0, valstep=1)
+imgslider = Slider(ax=ax_slider, label='Frame Number', valmin=100, valmax=101, valinit=0, valstep=1)
+
+global colorbar_set
+colorbar_set = False
 
 def update(idx):
     with h5py.File(pth, 'r') as h:
@@ -85,13 +88,23 @@ def update(idx):
     img_new1 = transform(delta_x1, delta_y1, c1)
     img_new2 = transform(delta_x2, delta_y2, c2)
     
-    ax[0,0].imshow(img_new1)
-    ax[1,0].imshow(img_new2)
+    im1 = ax[0,0].imshow(img_new1)
+    im2 = ax[1,0].imshow(img_new2)
 
     intensity = np.divide(img_new1, img_new2)
     intensity[np.isnan(intensity)] = 0
     intensity[np.isinf(intensity)] = 0
-    ax[0,1].imshow(intensity, vmax=3)
+    print(intensity.max())
+    ir = ax[0,1].imshow(intensity, vmax=3)
+
+    global colorbar_set
+
+    if not colorbar_set:
+        plt.colorbar(im1)
+        plt.colorbar(im2)
+        plt.colorbar(ir)
+        colorbar_set = True
+
     intensity_array.append(intensity)
     f.canvas.draw_idle() #redraw the plot
     
