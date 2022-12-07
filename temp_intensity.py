@@ -25,8 +25,7 @@ class Temperature:
 
     def __init__(self, root):
         with h5py.File(root, 'r') as h:
-            #d_ratio = dict((k, item[:]) for (k, item) in h.items())
-            d_ratio = h["intensity_ratio"]
+            d_ratio = dict((k, item[:]) for (k, item) in h['ratiodata'].items())
         print(d_ratio)
         x_values = np.linspace(-100, 100, 5)
         y_values = np.linspace(-100, 100, 5)
@@ -45,12 +44,20 @@ class Temperature:
     def predict(self, R):
         return self.T_trans(R)
 
+'''
 if __name__ == '__main__':
 
     import matplotlib.pyplot as plt
+    #load the intensity ratio and plot
+    with h5py.File('c:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/Intensity Ratio1.mat', 'r') as f:
+        print(f.keys())
+        R = f['intensity_ratio']
+        R = np.transpose(R, (2, 1, 0))
+        print(R.shape)
+        R = np.array(R).reshape(61440,)
 
-    root = 'Intensity Ratio1.mat'
-    R = np.linspace(0, 3, 200)
+    root = 'C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/config_matfile.mat'
+    #R = np.linspace(0, 3, 200)
     x_mu = 0
     y_mu = 0
     T_model = Temperature(root=root)
@@ -58,10 +65,13 @@ if __name__ == '__main__':
     T_calculated = T_model.predict(R)
 
     f, ax = plt.subplots(figsize=(5,5))
-    ax.plot(R, T_calculated, 'k')
+    #ax.plot(R, T_calculated, 'k')
+    ax.scatter(R, T_calculated)
     ax.set_xlabel('Intensity ratio $I_1$ / $I_2$')
     ax.set_ylabel('Temperature (K)')
-    ax.set(xlim=(R.min(), R.max()), ylim=(0, 5000))
+    #ax.set(xlim=(R.min(), R.max()), ylim=(0, 5000))
+    ax.set(xlim=(0, 3), ylim=(0, 5000))
     ax.grid()
     plt.tight_layout()
     plt.show()
+'''
