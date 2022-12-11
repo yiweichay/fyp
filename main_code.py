@@ -69,7 +69,7 @@ from matplotlib.widgets import Slider
 f, ax = plt.subplots(2,2,figsize=(10,10))
 plt.subplots_adjust(bottom = 0.25)
 ax_slider = f.add_axes([0.25, 0.1, 0.65, 0.03])
-imgslider = Slider(ax=ax_slider, label='Frame Number', valmin=0, valmax=1000, valinit=0, valstep=1)
+imgslider = Slider(ax=ax_slider, label='Frame Number', valmin=50, valmax=51, valinit=0, valstep=1)
 global colorbar_set #this is like volatile in C, for interrupts
 colorbar_set = False
 
@@ -94,12 +94,21 @@ def update(idx):
     im1 = ax[0,0].imshow(img_new1)
     im2 = ax[1,0].imshow(img_new2)
 
+    '''
+    #Check
+    M = np.multiply(img_new1, img_new2)
+    print(M.max())
+    print(np.where(M == M.max()))
+    '''
+
     #Calculating intensity ratios
     R = np.divide(img_new1, img_new2)
+    #print(R.tolist())
     R[np.isnan(R)] = 0
     R[np.isinf(R)] = 0
+    print(np.where(R == R.max()))
+    R = R[50:150, 100:220] #crop image
     IR = ax[0,1].imshow(R, vmax=3)
-    #R = np.array(R).reshape(61440,0)
 
     #Plotting temperature - intensity graph
     T_calculated = T_model.predict(R)
