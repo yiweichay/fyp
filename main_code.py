@@ -4,6 +4,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from temp_intensity import Temperature
 
+#Load and read files
+df = pd.read_csv('C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/layer8/processed.csv')
+x_pos = np.array(df['x_pos'][:])
+y_pos = np.array(df['y_pos'][:])
+#Temperature initialisation
+root = 'C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/config_matfile.mat'
+
 #Load centroids
 pth = 'C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/layer8/weighted_centroids_diode_aligned.npy'
 d = np.load(pth, allow_pickle=True).item()
@@ -53,14 +60,6 @@ pth = 'C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/layer8/rawd
 #Mark the center of the image
 center_x = 160
 center_y = 96
-#intensity_array = []
-
-#Temperature initialisation
-root = 'C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/config_matfile.mat'
-x_mu = 0
-y_mu = 0
-T_model = Temperature(root=root)
-T_model.fit(x_mu, y_mu)
 
 #Add a slider
 from matplotlib.widgets import Slider
@@ -91,8 +90,12 @@ def update(idx):
     delta_x1, delta_y1, delta_x2, delta_y2 = delta(center_x, center_y, idx)
     img_new1 = transform(delta_x1, delta_y1, c1)
     img_new2 = transform(delta_x2, delta_y2, c2)
+    #img_new1 = img_new1[70:130, 120:200] #crop image
     im1 = ax[0,0].imshow(img_new1)
+    ax[0,0].grid()
+    #img_new2 = img_new2[70:130, 120:200] #crop image
     im2 = ax[1,0].imshow(img_new2)
+    ax[1,0].grid()
 
     '''
     #Check
@@ -102,12 +105,12 @@ def update(idx):
     '''
 
     #Calculating intensity ratios
-    R = np.divide(img_new1, img_new2)
+    R = np.divide(img_new2, img_new1)
     #print(R.tolist())
     R[np.isnan(R)] = 0
     R[np.isinf(R)] = 0
-    print(np.where(R == R.max()))
-    print(R.max())
+    #print(np.where(R == R.max()))
+    #print(R.max())
     new = R.copy()
     new[:70, :] = 0
     new[130:, :] = 0
@@ -122,13 +125,21 @@ def update(idx):
     #IR = ax[0,1].imshow(R, vmax=3)
 
     #Plotting temperature - intensity graph
+    #x_mu = x_pos[idx]
+    #y_mu = y_pos[idx]
+    
+    #print(x_mu, y_mu)
+    x_mu = 100.2667904
+    y_mu = -75.1196396
+    
+    T_model = Temperature(root=root)
+    T_model.fit(x_mu, y_mu)
     T_calculated = T_model.predict(R)
     ax[1,1].scatter(R, T_calculated)
     ax[1,1].set_xlabel('Intensity ratio $I_1$ / $I_2$')
     ax[1,1].set_ylabel('Temperature (K)')
     ax[1,1].set(xlim=(0, 3), ylim=(0, 5000))
     ax[1,1].grid()
-    #plt.tight_layout()
 
     #Setting colour bars
     global colorbar_set
