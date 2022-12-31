@@ -27,8 +27,8 @@ class Temperature:
         with h5py.File(root, 'r') as h:
             d_ratio = dict((k, item[:]) for (k, item) in h['ratiodata'].items())
         print(d_ratio)
-        x_values = np.linspace(-100, 100, 5)
-        y_values = np.linspace(-100, 100, 5)
+        x_values = np.linspace(-110, 110, 5)
+        y_values = np.linspace(-110, 110, 5)
         self.T_ref = d_ratio['T'].squeeze()
         self.n_Ts = len(self.T_ref)
         self.interp_R = RegularGridInterpolator((d_ratio['T'].squeeze(), x_values, y_values), 
