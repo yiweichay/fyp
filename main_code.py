@@ -54,6 +54,15 @@ def transform(delta_x, delta_y, img):
     
     return img_new
 
+#Noise filtering function
+def denoise(c1, c2, M):
+    for i in range(0,192):
+        for j in range(0,320):
+            if M[i,j] <= 10000:
+                c1[i,j] = 0
+                c2[i,j] = 0
+    return c1, c2
+
 pth = 'C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/layer8/rawdataALLFRAMES.mat'
 
 #Align images, calculate intensity ratio and save to .mat file
@@ -65,7 +74,7 @@ center_y = 96
 from matplotlib.widgets import Slider
 
 #Adjust the main plot to make room for the slider
-f, ax = plt.subplots(2,2,figsize=(10,10))
+f, ax = plt.subplots(2,3,figsize=(10,10))
 f.tight_layout()
 plt.subplots_adjust(bottom = 0.25)
 ax_slider = f.add_axes([0.25, 0.1, 0.65, 0.03])
@@ -101,16 +110,20 @@ def update(idx):
     ax[1,0].grid(b=True, which='major', linestyle='-')
     ax[1,0].set_title(f"Laser Position: {np.round(centroid[idx,2],2)},{np.round(centroid[idx,3],2)}")
 
-    '''
-    #Check
+    
+    #Check by multiplying the pixels
     M = np.multiply(img_new1, img_new2)
     print(M.max())
     print(np.where(M == M.max()))
-    '''
+    mul = ax[0,2].imshow(M)
+    ax[0,2].grid(b=True, which='major', linestyle='-')
+    ax[0,2].set_title('Multiplication of pixels c1xc2')
 
     #Calculating intensity ratios
+    #Denoise the aligned images
+    img_new1, img_new2 = denoise(img_new1, img_new2, M)
+
     R = np.divide(img_new2, img_new1)
-    #print(R.tolist())
     R[np.isnan(R)] = 0
     R[np.isinf(R)] = 0
     #print(np.where(R == R.max()))
@@ -127,8 +140,6 @@ def update(idx):
     IR = ax[0,1].imshow(R, vmax=3)
     ax[0,1].grid(b=True, which='major', linestyle='-')
     ax[0,1].set_title('Intensity Ratio: c2/c1')
-    
-    #IR = ax[0,1].imshow(R, vmax=3)
 
     #Plotting temperature - intensity graph
     #Reshape R into 1d vector
@@ -136,9 +147,8 @@ def update(idx):
     
     #include changing x and y position
     x_mu = x_pos[idx]
-    y_mu = y_pos[idx]
-    
-    print(x_mu, y_mu)
+    y_mu = y_pos[idx]   
+    #print(x_mu, y_mu)
     
     T_model = Temperature(root=root)
     T_model.fit(x_mu, y_mu)
@@ -156,9 +166,9 @@ def update(idx):
         plt.colorbar(im1)
         plt.colorbar(im2)
         plt.colorbar(IR)
+        plt.colorbar(mul)
         colorbar_set = True
 
-    #intensity_array.append(R)
     #redraw the plot
     f.canvas.draw_idle() 
 
