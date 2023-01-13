@@ -8,6 +8,7 @@ from temp_intensity import Temperature
 df = pd.read_csv('C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/layer8/processed.csv')
 x_pos = np.array(df['x_pos'][:])
 y_pos = np.array(df['y_pos'][:])
+E_0 = np.array(df['E_0'][:])
 #Temperature initialisation
 root = 'C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/config_matfile.mat'
 
@@ -104,12 +105,12 @@ def update(idx):
     img_new1crop = img_new1[70:130, 120:200] #crop image
     im1 = ax[0,0].imshow(img_new1)
     ax[0,0].grid(b=True, which='major', linestyle='-')
-    ax[0,0].set_title(f"[c1] Laser Position: {np.round(centroid[idx,0],2)},{np.round(centroid[idx,1],2)}")
+    ax[0,0].set_title(f"[c1] Centroid: {np.round(centroid[idx,0],2)},{np.round(centroid[idx,1],2)}")
 
     img_new2crop = img_new2[70:130, 120:200] #crop image
     im2 = ax[1,0].imshow(img_new2)
     ax[1,0].grid(b=True, which='major', linestyle='-')
-    ax[1,0].set_title(f"[c2] Laser Position: {np.round(centroid[idx,2],2)},{np.round(centroid[idx,3],2)}")
+    ax[1,0].set_title(f"[c2] Centroid: {np.round(centroid[idx,2],2)},{np.round(centroid[idx,3],2)}")
 
     
     #Check by multiplying the pixels
@@ -162,6 +163,14 @@ def update(idx):
     ax[1,1].set(xlim=(0, 3), ylim=(0, 5000))
     ax[1,1].grid(b=True, which='major', linestyle='-')
 
+    #x and y position
+    ax[1,2].clear()
+    xy_pos = ax[1,2].scatter(x_pos, y_pos, c=E_0, vmax=10)
+    ax[1,2].plot(x_mu, y_mu, marker='x', c='r')
+    ax[1,2].set_title('Build Position')
+    ax[1,2].set_xlabel('x position')
+    ax[1,2].set_ylabel('y position')
+
     #Setting colour bars
     global colorbar_set
     if not colorbar_set:
@@ -169,6 +178,7 @@ def update(idx):
         plt.colorbar(im2)
         plt.colorbar(IR)
         plt.colorbar(mul)
+        plt.colorbar(xy_pos)
         colorbar_set = True
 
     #redraw the plot
