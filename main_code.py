@@ -59,7 +59,7 @@ def transform(delta_x, delta_y, img):
 def denoise(c1, c2, M):
     for i in range(0,192):
         for j in range(0,320):
-            if M[i,j] <= 10000:
+            if M[i,j] <= 200:
                 c1[i,j] = 0
                 c2[i,j] = 0
     return c1, c2
@@ -105,12 +105,12 @@ def update(idx):
     img_new1crop = img_new1[70:130, 120:200] #crop image
     im1 = ax[0,0].imshow(img_new1)
     ax[0,0].grid(b=True, which='major', linestyle='-')
-    ax[0,0].set_title(f"[c1] Centroid: {np.round(centroid[idx,0],2)},{np.round(centroid[idx,1],2)}")
+    ax[0,0].set_title(f"[c1] Centroid Position: {np.round(centroid[idx,0],2)},{np.round(centroid[idx,1],2)}")
 
     img_new2crop = img_new2[70:130, 120:200] #crop image
     im2 = ax[1,0].imshow(img_new2)
     ax[1,0].grid(b=True, which='major', linestyle='-')
-    ax[1,0].set_title(f"[c2] Centroid: {np.round(centroid[idx,2],2)},{np.round(centroid[idx,3],2)}")
+    ax[1,0].set_title(f"[c2] Centroid Position: {np.round(centroid[idx,2],2)},{np.round(centroid[idx,3],2)}")
 
     
     #Check by multiplying the pixels
@@ -129,8 +129,7 @@ def update(idx):
     R = np.divide(img_new2, img_new1)
     R[np.isnan(R)] = 0
     R[np.isinf(R)] = 0
-    #print(np.where(R == R.max()))
-    #print(R.max())
+    '''
     new = R.copy()
     new[:70, :] = 0
     new[130:, :] = 0
@@ -140,13 +139,14 @@ def update(idx):
     #print(new.tolist())
     #print(new.max())
     #print(np.where(new == new.max()))
+    '''
     IR = ax[0,1].imshow(R, vmax=3)
     ax[0,1].grid(b=True, which='major', linestyle='-')
     ax[0,1].set_title('Intensity Ratio: c2/c1')
 
     #Plotting temperature - intensity graph
     #Reshape R into 1d vector
-    R = np.reshape(R, (1, 61440))
+    R = np.reshape(R, [1, 61440])
     
     #include changing x and y position
     x_mu = x_pos[idx]
@@ -163,13 +163,31 @@ def update(idx):
     ax[1,1].set(xlim=(0, 3), ylim=(0, 5000))
     ax[1,1].grid(b=True, which='major', linestyle='-')
 
-    #x and y position
+    '''
+    #Build Position
     ax[1,2].clear()
     xy_pos = ax[1,2].scatter(x_pos, y_pos, c=E_0, vmax=10)
     ax[1,2].plot(x_mu, y_mu, marker='x', c='r')
     ax[1,2].set_title('Build Position')
     ax[1,2].set_xlabel('x position')
     ax[1,2].set_ylabel('y position')
+    '''
+    
+    #Histogram to check noise threshold
+    M = np.reshape(M, [61440,1])
+    ax[1,2].clear()
+    x = np.linspace(0, 61440, 61440)
+    ax[1,2].scatter(x, M, s=4)
+    ax[1,2].axhline(y = 200, color = 'r', linestyle = '-')
+    #ax[1,2].hist(M, bins=[0, 100, 200, 300, 400, 500])
+
+    '''
+    T_calculated = np.reshape(T_calculated, [192,320])
+    T_calculated[np.isnan(T_calculated)] = 0
+    T_calculated[np.isinf(T_calculated)] = 0
+    print(T_calculated)
+    temp = ax[1,2].contourf(T_calculated)
+    '''
 
     #Setting colour bars
     global colorbar_set
@@ -178,7 +196,8 @@ def update(idx):
         plt.colorbar(im2)
         plt.colorbar(IR)
         plt.colorbar(mul)
-        plt.colorbar(xy_pos)
+        #plt.colorbar(xy_pos)
+        #plt.colorbar(temp)
         colorbar_set = True
 
     #redraw the plot
