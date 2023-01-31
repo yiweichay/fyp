@@ -26,7 +26,7 @@ class Temperature:
     def __init__(self, root):
         with h5py.File(root, 'r') as h:
             d_ratio = dict((k, item[:]) for (k, item) in h['ratiodata'].items())
-        print(d_ratio)
+        #print(d_ratio)
         x_values = np.linspace(-110, 110, 5)
         y_values = np.linspace(-110, 110, 5)
         self.T_ref = d_ratio['T'].squeeze()
@@ -48,13 +48,6 @@ class Temperature:
 if __name__ == '__main__':
 
     import matplotlib.pyplot as plt
-    #load the intensity ratio and plot
-    with h5py.File('c:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/Intensity Ratio1.mat', 'r') as f:
-        print(f.keys())
-        R = f['intensity_ratio']
-        R = np.transpose(R, (2, 1, 0))
-        print(R.shape)
-        R = np.array(R).reshape(61440,)
 
     root = 'C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/config_matfile.mat'
     #R = np.linspace(0, 3, 200)
