@@ -117,34 +117,6 @@ for idx in range(2935,2936):
 
 temp_array = np.array(temp_array, dtype=object)
 print(temp_array.shape)
-'''
-X = np.linspace(min(x_pos[2885:3397,]), max(x_pos[2885:3397,]))
-Y = np.linspace(min(y_pos[2885:3397,]), max(y_pos[2885:3397,]))
-X, Y = np.meshgrid(X, Y)
-
-#interp = RegularGridInterpolator((x_pos[2885:3397,], y_pos[2885:3397,]), temp_array)
-cartcoord = list(zip(x_pos[2885:3397,], y_pos[2885:3397,]))
-interp = LinearNDInterpolator(cartcoord,temp_array, fill_value = 0)
-Z0 = interp(X,Y)
-fig,ax = plt.subplots()
-#ax.scatter(x_pos, y_pos, temp_array)
-plt.pcolormesh(X,Y,Z0)
-plt.show()
-'''
-
-#Temperature map for build plate
-#x_pos = x_pos[2885:3397,]
-#y_pos = y_pos[2885:3397,]
-x = np.linspace(min(x_pos), max(x_pos))
-y = np.linspace(min(y_pos), max(y_pos))
-x,y = np.meshgrid(x,y)
-
-interp = LinearNDInterpolator((x_pos,y_pos),temp_array, fill_value = 0)
-Z = interp(x,y)
-plt.contourf(x,y,Z)
-plt.colorbar()
-plt.show()
-
 
 #Cooling rate (temp-time history)
 print(temp_array[0][114][156])
@@ -160,6 +132,7 @@ plt.ylabel('Temperature')
 for xy in zip(x, y):
    plt.annotate('(%.2f, %.2f)' % xy, xy=xy)
 plt.show()
+
 
 
 
