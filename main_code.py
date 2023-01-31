@@ -2,11 +2,14 @@ import pandas as pd
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
+#plt.style.use('classic')
 from temp_intensity import Temperature
+from scipy.stats import norm
 
 #Load and read files
 df = pd.read_csv('C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/layer8/processed.csv')
 x_pos = np.array(df['x_pos'][:])
+print(x_pos.shape)
 y_pos = np.array(df['y_pos'][:])
 E_0 = np.array(df['E_0'][:])
 #Temperature initialisation
@@ -32,10 +35,6 @@ def transform(delta_x, delta_y, img):
     if delta_y == 0:
         img_new = img.copy()
     else:
-        '''
-        if delta_y > 0: #translate up
-            delta_y = -delta_y
-        '''
         temp = img[:-delta_y]
         img_new = img.copy()
         img_new[:delta_y] = img[-delta_y:]
@@ -45,10 +44,6 @@ def transform(delta_x, delta_y, img):
     if delta_x == 0:
         img_new = img_new.copy()
     else:
-        '''
-        if delta_x > 0: 
-            delta_x = -delta_x
-            '''
         temp = img_new[:,-delta_x:]
         img_new[:,delta_x:] = img_new[:,:-delta_x]
         img_new[:,:delta_x] = temp
@@ -146,7 +141,7 @@ def update(idx):
 
     #Plotting temperature - intensity graph
     #Reshape R into 1d vector
-    R = np.reshape(R, [1, 61440])
+    R = np.reshape(R, [61440, 1])
     
     #include changing x and y position
     x_mu = x_pos[idx]
@@ -162,7 +157,10 @@ def update(idx):
     ax[1,1].set_ylabel('Temperature (K)')
     ax[1,1].set(xlim=(0, 3), ylim=(0, 5000))
     ax[1,1].grid(b=True, which='major', linestyle='-')
-
+    T_calculated = np.reshape(T_calculated, [192, 320])
+    #print(T_calculated.max())
+    #print(np.where(T_calculated == T_calculated.max()))
+    
     '''
     #Build Position
     ax[1,2].clear()
@@ -171,15 +169,29 @@ def update(idx):
     ax[1,2].set_title('Build Position')
     ax[1,2].set_xlabel('x position')
     ax[1,2].set_ylabel('y position')
-    '''
     
+    '''
     #Histogram to check noise threshold
     M = np.reshape(M, [61440,1])
     ax[1,2].clear()
     x = np.linspace(0, 61440, 61440)
     ax[1,2].scatter(x, M, s=4)
-    ax[1,2].axhline(y = 200, color = 'r', linestyle = '-')
+    ax[1,2].axhline(y = 500, color = 'r', linestyle = '-')
+    ax[1,2].set_xlabel('Pixel Number')
+    ax[1,2].set_ylabel('Intensity Multiplication')
     #ax[1,2].hist(M, bins=[0, 100, 200, 300, 400, 500])
+    #ax[1,2].set_xlabel('Pixel Intensity')
+    #ax[1,2].set_ylabel('Frequency')
+    a = M[:20000]
+    mu = np.mean(a)
+    stdv = np.std(a)
+    
+    '''
+    domain = np.linspace(0,10,1000)
+    probabilities = norm.pdf(domain, mu, stdv)
+    ax[2,0].clear()
+    ax[2,0].plot(domain, probabilities)
+    '''
 
     '''
     T_calculated = np.reshape(T_calculated, [192,320])
@@ -187,8 +199,8 @@ def update(idx):
     T_calculated[np.isinf(T_calculated)] = 0
     print(T_calculated)
     temp = ax[1,2].contourf(T_calculated)
+    ax[1,2].set_title('Temperature Contour Plot')
     '''
-
     #Setting colour bars
     global colorbar_set
     if not colorbar_set:
