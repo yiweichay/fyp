@@ -1,8 +1,9 @@
 import pandas as pd
 import h5py
 import numpy as np
+import hdf5storage
 import matplotlib.pyplot as plt
-#plt.style.use('classic')
+plt.style.use('classic')
 from temp_intensity import Temperature
 from scipy.interpolate import RegularGridInterpolator, interp1d, LinearNDInterpolator
 
@@ -68,7 +69,10 @@ center_y = 96
 #Align images, calculate intensity ratio and save to .mat file
 temp_array = []
 
-for idx in range(2935,2936):
+globMat = np.zeros((600,800))
+pix = 0.02 #1 pixel = 0.02mm
+
+for idx in range(0,len(x_pos)):
     with h5py.File(pth, 'r') as h:
         #print(h.keys())
         c1 = h['cam1'][idx][:] #camera 1
@@ -93,7 +97,7 @@ for idx in range(2935,2936):
         M = np.multiply(img_new1, img_new2)
 
         #Denoise the aligned images
-        #img_new1, img_new2 = denoise(img_new1, img_new2, M)
+        img_new1, img_new2 = denoise(img_new1, img_new2, M)
         #Calculating intensity ratios
         R = np.divide(img_new2, img_new1)
         R[np.isnan(R)] = 0
@@ -111,32 +115,30 @@ for idx in range(2935,2936):
         T_calculated = np.reshape(T_calculated, [192,320])
         T_calculated[np.isnan(T_calculated)] = 0
         T_calculated[np.isinf(T_calculated)] = 0
-        #temp_array.append(T_calculated.max())
-        temp_array.append(T_calculated)
 
+        #Save temperature to .mat file
+        #temp_array.append(T_calculated)
+    
+        #Convert xpos and ypos to pixels
+        globx = int(np.ceil((x_mu-93)/pix) - 1)
+        globy = int(np.ceil(np.abs((y_mu-(-71))/pix)) - 1)
 
-temp_array = np.array(temp_array, dtype=object)
-print(temp_array.shape)
+        #print('globx:', globx)
+        #print('globy:', globy)
+        globMat_copy = np.zeros((600,800))
+        if globMat_copy[globy-center_y:globy+center_y, globx-center_x:globx+center_x].shape != (192, 320):
+            continue
+        else:
+            globMat_copy[globy-center_y:globy+center_y, globx-center_x:globx+center_x] = T_calculated
+        globMat = np.add(globMat, globMat_copy)
 
-#Cooling rate (temp-time history)
-print(temp_array[0][114][156])
+#temp = {"Temperature Array": np.array(temp_array)}
 
-x = np.array([0.033836, 0.034336])
-y = np.array([2370.6376606735357, 1856.8141248737497])
-a,b = np.polyfit(x,y,1)
-print((y[1]-y[0])/(x[1]-x[0]))
-plt.scatter(x,y)
-plt.plot(x, a*x+b)
-plt.xlabel('Time')
-plt.ylabel('Temperature')
-for xy in zip(x, y):
-   plt.annotate('(%.2f, %.2f)' % xy, xy=xy)
+#Save the matlab file as hdf5 format
+#hdf5storage.savemat('Temperature Array.mat', temp, format='7.3')
+
+f, ax = plt.subplots()
+#globMat = globMat.tolist()
+gm = ax.imshow(globMat)
+plt.colorbar(gm)
 plt.show()
-
-
-
-
-
-
-
-
