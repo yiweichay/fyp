@@ -9,8 +9,9 @@ from scipy.stats import norm
 #Load and read files
 df = pd.read_csv('C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/layer8/processed.csv')
 x_pos = np.array(df['x_pos'][:])
-print(x_pos.shape)
 y_pos = np.array(df['y_pos'][:])
+print(x_pos.max(), x_pos.min())
+print(y_pos.max(), y_pos.min())
 E_0 = np.array(df['E_0'][:])
 #Temperature initialisation
 root = 'C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/config_matfile.mat'
@@ -54,7 +55,7 @@ def transform(delta_x, delta_y, img):
 def denoise(c1, c2, M):
     for i in range(0,192):
         for j in range(0,320):
-            if M[i,j] <= 200:
+            if M[i,j] <= 500:
                 c1[i,j] = 0
                 c2[i,j] = 0
     return c1, c2
@@ -73,7 +74,7 @@ f, ax = plt.subplots(2,3,figsize=(10,10))
 f.tight_layout()
 plt.subplots_adjust(bottom = 0.25)
 ax_slider = f.add_axes([0.25, 0.1, 0.65, 0.03])
-imgslider = Slider(ax=ax_slider, label='Frame Number', valmin=0, valmax=10000, valinit=0, valstep=1)
+imgslider = Slider(ax=ax_slider, label='Frame Number', valmin=7600, valmax=7700, valinit=0, valstep=1)
 
 #Add colorbar
 global colorbar_set #this is like volatile in C, for interrupts
@@ -97,12 +98,12 @@ def update(idx):
     delta_x1, delta_y1, delta_x2, delta_y2 = delta(center_x, center_y, idx)
     img_new1 = transform(delta_x1, delta_y1, c1)
     img_new2 = transform(delta_x2, delta_y2, c2)
-    img_new1crop = img_new1[70:130, 120:200] #crop image
+    #img_new1crop = img_new1[70:130, 120:200] #crop image
     im1 = ax[0,0].imshow(img_new1)
     ax[0,0].grid(b=True, which='major', linestyle='-')
     ax[0,0].set_title(f"[c1] Centroid Position: {np.round(centroid[idx,0],2)},{np.round(centroid[idx,1],2)}")
 
-    img_new2crop = img_new2[70:130, 120:200] #crop image
+    #img_new2crop = img_new2[70:130, 120:200] #crop image
     im2 = ax[1,0].imshow(img_new2)
     ax[1,0].grid(b=True, which='major', linestyle='-')
     ax[1,0].set_title(f"[c2] Centroid Position: {np.round(centroid[idx,2],2)},{np.round(centroid[idx,3],2)}")
@@ -136,7 +137,7 @@ def update(idx):
     #print(np.where(new == new.max()))
     '''
     IR = ax[0,1].imshow(R, vmax=3)
-    ax[0,1].grid(b=True, which='major', linestyle='-')
+    #ax[0,1].grid(b=True, which='major', linestyle='-')
     ax[0,1].set_title('Intensity Ratio: c2/c1')
 
     #Plotting temperature - intensity graph
@@ -161,7 +162,7 @@ def update(idx):
     #print(T_calculated.max())
     #print(np.where(T_calculated == T_calculated.max()))
     
-    '''
+    
     #Build Position
     ax[1,2].clear()
     xy_pos = ax[1,2].scatter(x_pos, y_pos, c=E_0, vmax=10)
@@ -176,16 +177,16 @@ def update(idx):
     ax[1,2].clear()
     x = np.linspace(0, 61440, 61440)
     ax[1,2].scatter(x, M, s=4)
-    ax[1,2].axhline(y = 500, color = 'r', linestyle = '-')
+    #ax[1,2].axhline(y = 500, color = 'r', linestyle = '-')
     ax[1,2].set_xlabel('Pixel Number')
     ax[1,2].set_ylabel('Intensity Multiplication')
     #ax[1,2].hist(M, bins=[0, 100, 200, 300, 400, 500])
     #ax[1,2].set_xlabel('Pixel Intensity')
     #ax[1,2].set_ylabel('Frequency')
     a = M[:20000]
-    mu = np.mean(a)
-    stdv = np.std(a)
-    
+    print(np.mean(a))
+    print(np.std(a))
+    '''
     '''
     domain = np.linspace(0,10,1000)
     probabilities = norm.pdf(domain, mu, stdv)
@@ -208,7 +209,7 @@ def update(idx):
         plt.colorbar(im2)
         plt.colorbar(IR)
         plt.colorbar(mul)
-        #plt.colorbar(xy_pos)
+        plt.colorbar(xy_pos)
         #plt.colorbar(temp)
         colorbar_set = True
 
