@@ -132,6 +132,9 @@ for idx in range(0,len(x_pos)):
             globMat_copy[globy-center_y:globy+center_y, globx-center_x:globx+center_x] = T_calculated
         globMat = np.add(globMat, globMat_copy)
 
+        if idx % 1000 == 0:
+            print(idx)
+
 #temp = {"Temperature Array": np.array(temp_array)}
 
 #Save the matlab file as hdf5 format
@@ -140,5 +143,6 @@ for idx in range(0,len(x_pos)):
 f, ax = plt.subplots()
 #globMat = globMat.tolist()
 gm = ax.imshow(globMat)
+plt.imsave('test.png', globMat)
 plt.colorbar(gm)
 plt.show()
