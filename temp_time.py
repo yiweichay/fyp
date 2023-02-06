@@ -5,7 +5,6 @@ import hdf5storage
 import matplotlib.pyplot as plt
 plt.style.use('classic')
 from temp_intensity import Temperature
-from scipy.interpolate import RegularGridInterpolator, interp1d, LinearNDInterpolator
 
 #Load and read files
 df = pd.read_csv('C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/layer8/processed.csv')
@@ -67,14 +66,13 @@ center_x = 160
 center_y = 96
 
 #Align images, calculate intensity ratio and save to .mat file
-#temp_array = []
 temp = {}
-globTemp = {}
+#globTemp = {}
 
 globMat = np.zeros((600,800))
 pix = 0.02 #1 pixel = 0.02mm
 
-for idx in range(0, 100):
+for idx in range(0, len(x_pos)):
     with h5py.File(pth, 'r') as h:
         #print(h.keys())
         c1 = h['cam1'][idx][:] #camera 1
@@ -83,12 +81,12 @@ for idx in range(0, 100):
     #Check if the image pixels are correct
     if c1.shape and c2.shape != (192, 320):
         temp[str(idx).zfill(5)] = np.zeros((192,320))
-        globTemp[str(idx).zfill(5)] = globMat
+        #globTemp[str(idx).zfill(5)] = globMat
 
     #Check if there are values for the laser position
     elif np.all(centroid[idx]) == False:
         temp[str(idx).zfill(5)] = np.zeros((192,320))
-        globTemp[str(idx).zfill(5)] = globMat
+        #globTemp[str(idx).zfill(5)] = globMat
 
     else:   
         delta_x1, delta_y1, delta_x2, delta_y2 = delta(center_x, center_y, idx)
@@ -120,7 +118,7 @@ for idx in range(0, 100):
 
         #Save temperature to .mat file
         temp[str(idx).zfill(5)] = T_calculated
-
+        
         #Convert xpos and ypos to pixels
         globx = int(np.ceil((x_mu-93)/pix) - 1)
         globy = int(np.ceil(np.abs((y_mu-(-71))/pix)) - 1)
@@ -131,7 +129,7 @@ for idx in range(0, 100):
         if globMat_copy[globy-center_y:globy+center_y, globx-center_x:globx+center_x].shape == (192, 320):
             globMat_copy[globy-center_y:globy+center_y, globx-center_x:globx+center_x] = T_calculated
 
-        globTemp[str(idx).zfill(5)] = globMat_copy
+        #globTemp[str(idx).zfill(5)] = globMat_copy
         globMat = np.add(globMat, globMat_copy)
         
         if idx % 1000 == 0:
@@ -139,9 +137,10 @@ for idx in range(0, 100):
 
 #Save the matlab file as hdf5 format
 hdf5storage.savemat('Temperature Array', temp, format='7.3')
-hdf5storage.savemat('Temperature Global Array', globTemp, format='7.3')
+#hdf5storage.savemat('Temperature Global Array', globTemp, format='7.3')
 
 '''
+#Print the temperature plot on build plate
 f, ax = plt.subplots()
 #globMat = globMat.tolist()
 gm = ax.imshow(globMat)
