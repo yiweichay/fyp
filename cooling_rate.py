@@ -48,22 +48,31 @@ with h5py.File(temp, 'r') as h:
         x_mu = x_pos[int(idx)]
         y_mu = y_pos[int(idx)] 
         globx, globy = mmToPixel(x_mu, y_mu)
-        
+
         globMat_copy = np.zeros((600,800))
         if globMat_copy[globy-center_y:globy+center_y, globx-center_x:globx+center_x].shape == (192, 320):
             globMat_copy[globy-center_y:globy+center_y, globx-center_x:globx+center_x] = T_calculated
         else:
             continue
         #globMat = np.add(globMat, globMat_copy)
+
         temp_array.append(globMat_copy[y,x])
         time.append(t[int(idx)])
+        #if int(idx) % 1000 == 0:
+        #    print(int(idx))
 
-
-#print(temp_array)
-#print(time)
+temp_array = np.array(temp_array)
+time = np.array(time)
 
 fig,ax = plt.subplots()
-plt.plot(time, temp_array)
+
+a, b = np.polyfit(time, temp_array, 1)
+plt.scatter(time, temp_array, s=3)
+plt.plot(time, a*time+b, c='orange')       
+
+plt.xlabel('Time (s)')
+plt.ylabel('Temperature (K)')
+plt.title('Cooling Curve')
 plt.show()
 '''
 #Print the temperature plot on build plate
