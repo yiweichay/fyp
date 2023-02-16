@@ -37,14 +37,14 @@ def mmToPixel(x, y):
 x = float(input("Input x position: "))
 y = float(input("Input y position: "))
 x,y = mmToPixel(x,y)
-print(x,y)
+#print(x,y)
 
 
 temp_array = []
 time = []
 
 with h5py.File(temp, 'r') as h:
-    for idx in list(h.keys())[0:1000]:  
+    for idx in list(h.keys())[0:500]:  
         T_calculated = np.fliplr(np.rot90(h[idx][:], 3)) #rotate clockwise by 90 degrees
         x_mu = x_pos[int(idx)]
         y_mu = y_pos[int(idx)] 
@@ -65,16 +65,18 @@ with h5py.File(temp, 'r') as h:
 temp_array = np.array(temp_array)
 x = np.arange(len(temp_array))
 idx = np.nonzero(temp_array)
-interp = interp1d(x[idx], temp_array[idx], kind='cubic', fill_value='extrapolate')
+interp = interp1d(x[idx], temp_array[idx], fill_value='extrapolate')
 temparray_new = interp(x)
 
 time = np.array(time)
 
 fig,ax = plt.subplots()
 
-a, b = np.polyfit(time, temparray_new, 1)
+slope, intercept = np.polyfit(time, temparray_new, 1) #Line of best fit
+print('Cooling Rate:', slope, 'Intercept:', intercept)
+
 plt.plot(time, temparray_new, label='Cooling curve')
-plt.plot(time, a*time+b, c='orange', label='Line of Best Fit')
+plt.plot(time, slope*time+intercept, c='orange', label='Line of Best Fit')
 ax.legend()
        
 
