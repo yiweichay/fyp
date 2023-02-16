@@ -5,6 +5,7 @@ import hdf5storage
 import matplotlib.pyplot as plt
 #plt.style.use('classic')
 from temp_intensity import Temperature
+from scipy.interpolate import interp1d
 
 #Load and read files
 df = pd.read_csv('C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/layer8/processed.csv')
@@ -43,7 +44,7 @@ temp_array = []
 time = []
 
 with h5py.File(temp, 'r') as h:
-    for idx in list(h.keys())[0:2000]:  
+    for idx in list(h.keys())[0:1000]:  
         T_calculated = np.fliplr(np.rot90(h[idx][:], 3)) #rotate clockwise by 90 degrees
         x_mu = x_pos[int(idx)]
         y_mu = y_pos[int(idx)] 
@@ -62,13 +63,20 @@ with h5py.File(temp, 'r') as h:
         #    print(int(idx))
 
 temp_array = np.array(temp_array)
+x = np.arange(len(temp_array))
+idx = np.nonzero(temp_array)
+interp = interp1d(x[idx], temp_array[idx], kind='cubic', fill_value='extrapolate')
+temparray_new = interp(x)
+
 time = np.array(time)
 
 fig,ax = plt.subplots()
 
-a, b = np.polyfit(time, temp_array, 1)
-plt.scatter(time, temp_array, s=3)
-plt.plot(time, a*time+b, c='orange')       
+a, b = np.polyfit(time, temparray_new, 1)
+plt.plot(time, temparray_new, label='Cooling curve')
+plt.plot(time, a*time+b, c='orange', label='Line of Best Fit')
+ax.legend()
+       
 
 plt.xlabel('Time (s)')
 plt.ylabel('Temperature (K)')
