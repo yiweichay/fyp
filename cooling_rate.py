@@ -4,7 +4,6 @@ import numpy as np
 import hdf5storage
 import matplotlib.pyplot as plt
 #plt.style.use('classic')
-from temp_intensity import Temperature
 from scipy.interpolate import interp1d
 
 #Load and read files
@@ -34,17 +33,20 @@ def mmToPixel(x, y):
     y = int(np.ceil(np.abs((y-(-71))/pix)) - 1)
     return x,y
 
-x = float(input("Input x position: "))
-y = float(input("Input y position: "))
+frame = int(input("Frame number:"))
+x = x_pos[frame]
+y = y_pos[frame]
+# x = float(input("Input x position: "))
+# y = float(input("Input y position: "))
 x,y = mmToPixel(x,y)
-#print(x,y)
+print(x,y)
 
 
 temp_array = []
 time = []
 
 with h5py.File(temp, 'r') as h:
-    for idx in list(h.keys())[0:500]:  
+    for idx in list(h.keys())[frame-10:frame+50]:  
         T_calculated = np.fliplr(np.rot90(h[idx][:], 3)) #rotate clockwise by 90 degrees
         x_mu = x_pos[int(idx)]
         y_mu = y_pos[int(idx)] 
@@ -65,17 +67,17 @@ with h5py.File(temp, 'r') as h:
 temp_array = np.array(temp_array)
 x = np.arange(len(temp_array))
 idx = np.nonzero(temp_array)
-interp = interp1d(x[idx], temp_array[idx], fill_value='extrapolate')
-temparray_new = interp(x)
+#interp = interp1d(x[idx], temp_array[idx], fill_value='extrapolate')
+#temparray_new = interp(x)
 
 time = np.array(time)
 
 fig,ax = plt.subplots()
 
-slope, intercept = np.polyfit(time, temparray_new, 1) #Line of best fit
-print('Cooling Rate:', slope, 'Intercept:', intercept)
+slope, intercept = np.polyfit(time, temp_array, 1) #Line of best fit
+print('Cooling Rate:', slope*10**-6, 'Intercept:', intercept)
 
-plt.plot(time, temparray_new, label='Cooling curve')
+plt.plot(time, temp_array, label='Cooling curve')
 plt.plot(time, slope*time+intercept, c='orange', label='Line of Best Fit')
 ax.legend()
        
@@ -84,8 +86,12 @@ plt.xlabel('Time (s)')
 plt.ylabel('Temperature (K)')
 plt.title('Cooling Curve')
 plt.show()
+
 '''
-#Print the temperature plot on build plate
+# --------------------------------------------------
+# Print the temperature plot on build plate
+# --------------------------------------------------
+
 f, ax = plt.subplots()
 #globMat = globMat.tolist()
 gm = ax.imshow(globMat)
