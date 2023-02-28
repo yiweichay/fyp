@@ -58,6 +58,13 @@ def denoise(c1, c2, M):
                 c2[i,j] = 0
     return c1, c2
 
+def crop(img):
+    img[:94,:] = 0
+    img[98:,:] = 0
+    img[:,:159] = 0
+    img[:,163:] = 0
+    return img
+
 pth = 'C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/layer8/rawdataALLFRAMES.mat'
 
 #Align images, calculate intensity ratio and save to .mat file
@@ -66,13 +73,14 @@ center_x = 160
 center_y = 96
 
 #Align images, calculate intensity ratio and save to .mat file
-temp = {}
-#globTemp = {}
+# temp = {}
+cam1 = {}
+cam2 = {}
 
-globMat = np.zeros((600,800))
-pix = 0.02 #1 pixel = 0.02mm
+# globMat = np.zeros((600,800))
+# pix = 0.02 #1 pixel = 0.02mm
 
-for idx in range(0, len(x_pos)):
+for idx in range(30000, len(x_pos)):
     with h5py.File(pth, 'r') as h:
         #print(h.keys())
         c1 = h['cam1'][idx][:] #camera 1
@@ -80,19 +88,30 @@ for idx in range(0, len(x_pos)):
     
     #Check if the image pixels are correct
     if c1.shape and c2.shape != (192, 320):
-        temp[str(idx).zfill(5)] = np.zeros((192,320))
-        #globTemp[str(idx).zfill(5)] = globMat
+        # temp[str(idx).zfill(5)] = np.zeros((192,320))
+        cam1[str(idx).zfill(5)] = np.zeros((192,320))
+        cam2[str(idx).zfill(5)] = np.zeros((192,320))
 
     #Check if there are values for the laser position
     elif np.all(centroid[idx]) == False:
-        temp[str(idx).zfill(5)] = np.zeros((192,320))
-        #globTemp[str(idx).zfill(5)] = globMat
+        # temp[str(idx).zfill(5)] = np.zeros((192,320))
+        cam1[str(idx).zfill(5)] = np.zeros((192,320))
+        cam2[str(idx).zfill(5)] = np.zeros((192,320))
+
 
     else:   
         delta_x1, delta_y1, delta_x2, delta_y2 = delta(center_x, center_y, idx)
         img_new1 = transform(delta_x1, delta_y1, c1)
         img_new2 = transform(delta_x2, delta_y2, c2)
 
+        #Crop images to remain only the center of the melt pool
+        img_new1 = crop(img_new1)
+        img_new2 = crop(img_new2)
+
+        #Save aligned images into .mat files
+        cam1[str(idx).zfill(5)] = img_new1
+        cam2[str(idx).zfill(5)] = img_new2
+        '''
         #Check by multiplying the pixels
         M = np.multiply(img_new1, img_new2)
 
@@ -118,7 +137,8 @@ for idx in range(0, len(x_pos)):
 
         #Save temperature to .mat file
         temp[str(idx).zfill(5)] = T_calculated
-        
+        '''
+        '''
         #Convert xpos and ypos to pixels
         globx = int(np.ceil((x_mu-93)/pix) - 1)
         globy = int(np.ceil(np.abs((y_mu-(-71))/pix)) - 1)
@@ -131,13 +151,16 @@ for idx in range(0, len(x_pos)):
 
         #globTemp[str(idx).zfill(5)] = globMat_copy
         globMat = np.add(globMat, globMat_copy)
-        
+        '''
         if idx % 1000 == 0:
             print(idx)
 
 #Save the matlab file as hdf5 format
-hdf5storage.savemat('Temperature Array', temp, format='7.3')
-#hdf5storage.savemat('Temperature Global Array', globTemp, format='7.3')
+# hdf5storage.savemat('Temperature Array', temp, format='7.3')
+hdf5storage.savemat('Camera1_alignedcrop', cam1, format='7.3')
+hdf5storage.savemat('Camera2_alignedcrop', cam2, format='7.3')
+
+
 
 '''
 #Print the temperature plot on build plate
