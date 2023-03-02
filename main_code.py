@@ -10,8 +10,8 @@ from scipy.stats import norm
 df = pd.read_csv('C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/layer8/processed.csv')
 x_pos = np.array(df['x_pos'][:])
 y_pos = np.array(df['y_pos'][:])
-print(x_pos.max(), x_pos.min())
-print(y_pos.max(), y_pos.min())
+# print(x_pos.max(), x_pos.min())
+# print(y_pos.max(), y_pos.min())
 E_0 = np.array(df['E_0'][:])
 #Temperature initialisation
 root = 'C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/config_matfile.mat'
@@ -74,7 +74,7 @@ f, ax = plt.subplots(2,3,figsize=(10,10))
 f.tight_layout()
 plt.subplots_adjust(bottom = 0.25)
 ax_slider = f.add_axes([0.25, 0.1, 0.65, 0.03])
-imgslider = Slider(ax=ax_slider, label='Frame Number', valmin=7600, valmax=7700, valinit=0, valstep=1)
+imgslider = Slider(ax=ax_slider, label='Frame Number', valmin=2000, valmax=3000, valinit=0, valstep=1)
 
 #Add colorbar
 global colorbar_set #this is like volatile in C, for interrupts
@@ -100,12 +100,12 @@ def update(idx):
     img_new2 = transform(delta_x2, delta_y2, c2)
     #img_new1crop = img_new1[70:130, 120:200] #crop image
     im1 = ax[0,0].imshow(img_new1)
-    ax[0,0].grid(b=True, which='major', linestyle='-')
+    ax[0,0].grid(True, which='major', linestyle='-')
     ax[0,0].set_title(f"[c1] Centroid Position: {np.round(centroid[idx,0],2)},{np.round(centroid[idx,1],2)}")
 
     #img_new2crop = img_new2[70:130, 120:200] #crop image
     im2 = ax[1,0].imshow(img_new2)
-    ax[1,0].grid(b=True, which='major', linestyle='-')
+    ax[1,0].grid(True, which='major', linestyle='-')
     ax[1,0].set_title(f"[c2] Centroid Position: {np.round(centroid[idx,2],2)},{np.round(centroid[idx,3],2)}")
 
     
@@ -115,7 +115,7 @@ def update(idx):
     print(np.where(M == M.max()))
     #ax[0,2].clear()
     mul = ax[0,2].imshow(M)
-    ax[0,2].grid(b=True, which='major', linestyle='-')
+    ax[0,2].grid(True, which='major', linestyle='-')
     ax[0,2].set_title('Multiplication of pixels c1xc2')
 
 
@@ -137,7 +137,7 @@ def update(idx):
     #print(np.where(new == new.max()))
     '''
     IR = ax[0,1].imshow(R, vmax=3)
-    #ax[0,1].grid(b=True, which='major', linestyle='-')
+    ax[0,1].grid(True, which='major', linestyle='-')
     ax[0,1].set_title('Intensity Ratio: c2/c1')
 
     #Plotting temperature - intensity graph
@@ -157,7 +157,7 @@ def update(idx):
     ax[1,1].set_xlabel('Intensity ratio $I_1$ / $I_2$')
     ax[1,1].set_ylabel('Temperature (K)')
     ax[1,1].set(xlim=(0, 3), ylim=(0, 5000))
-    ax[1,1].grid(b=True, which='major', linestyle='-')
+    ax[1,1].grid(True, which='major', linestyle='-')
     T_calculated = np.reshape(T_calculated, [192, 320])
     #print(T_calculated.max())
     #print(np.where(T_calculated == T_calculated.max()))
@@ -194,6 +194,9 @@ def update(idx):
     ax[2,0].plot(domain, probabilities)
     '''
 
+    # T_calculated[np.isnan(T_calculated)] = 0
+    # T_calculated[np.isinf(T_calculated)] = 0
+    # temp = ax[1,2].imshow(T_calculated)
     '''
     T_calculated = np.reshape(T_calculated, [192,320])
     T_calculated[np.isnan(T_calculated)] = 0
@@ -202,6 +205,7 @@ def update(idx):
     temp = ax[1,2].contourf(T_calculated)
     ax[1,2].set_title('Temperature Contour Plot')
     '''
+    
     #Setting colour bars
     global colorbar_set
     if not colorbar_set:
@@ -210,7 +214,7 @@ def update(idx):
         plt.colorbar(IR)
         plt.colorbar(mul)
         plt.colorbar(xy_pos)
-        #plt.colorbar(temp)
+        # plt.colorbar(temp)
         colorbar_set = True
 
     #redraw the plot
