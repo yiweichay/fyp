@@ -5,6 +5,7 @@ import hdf5storage
 import matplotlib.pyplot as plt
 plt.style.use('classic')
 from temp_intensity import Temperature
+from scipy import ndimage
 
 #Load and read files
 df = pd.read_csv('C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/layer8/processed.csv')
@@ -59,10 +60,14 @@ def denoise(c1, c2, M):
     return c1, c2
 
 def crop(img):
-    img[:94,:] = 0
-    img[98:,:] = 0
-    img[:,:159] = 0
-    img[:,163:] = 0
+    img[:86,:] = 0
+    img[106:,:] = 0
+    img[:,:150] = 0
+    img[:,170:] = 0
+    return img
+
+def rotate(img, degree):
+    img = ndimage.rotate(img, degree, reshape=False)
     return img
 
 pth = 'C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/layer8/rawdataALLFRAMES.mat'
@@ -80,7 +85,7 @@ cam2 = {}
 # globMat = np.zeros((600,800))
 # pix = 0.02 #1 pixel = 0.02mm
 
-for idx in range(30000, len(x_pos)):
+for idx in range(25000, len(x_pos)):
     with h5py.File(pth, 'r') as h:
         #print(h.keys())
         c1 = h['cam1'][idx][:] #camera 1
@@ -104,9 +109,13 @@ for idx in range(30000, len(x_pos)):
         img_new1 = transform(delta_x1, delta_y1, c1)
         img_new2 = transform(delta_x2, delta_y2, c2)
 
-        #Crop images to remain only the center of the melt pool
-        img_new1 = crop(img_new1)
-        img_new2 = crop(img_new2)
+        # #Crop images to remain only the center of the melt pool
+        # img_new1 = crop(img_new1)
+        # img_new2 = crop(img_new2)
+
+        # Rotate the image by -110 degrees
+        img_new1 = rotate(img_new1, -110)
+        img_new2 = rotate(img_new2, -110)
 
         #Save aligned images into .mat files
         cam1[str(idx).zfill(5)] = img_new1
@@ -157,8 +166,10 @@ for idx in range(30000, len(x_pos)):
 
 #Save the matlab file as hdf5 format
 # hdf5storage.savemat('Temperature Array', temp, format='7.3')
-hdf5storage.savemat('Camera1_alignedcrop', cam1, format='7.3')
-hdf5storage.savemat('Camera2_alignedcrop', cam2, format='7.3')
+# hdf5storage.savemat('Camera1_alignedcrop', cam1, format='7.3')
+# hdf5storage.savemat('Camera2_alignedcrop', cam2, format='7.3')
+hdf5storage.savemat('Camera1_rot-110', cam1, format='7.3')
+hdf5storage.savemat('Camera2_rot-110', cam2, format='7.3')
 
 
 
