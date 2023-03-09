@@ -60,10 +60,10 @@ def denoise(c1, c2, M):
     return c1, c2
 
 def crop(img):
-    img[:86,:] = 0
-    img[106:,:] = 0
-    img[:,:150] = 0
-    img[:,170:] = 0
+    img[:91,:] = 0
+    img[101:,:] = 0
+    img[:,:155] = 0
+    img[:,165:] = 0
     return img
 
 def rotate(img, degree):
@@ -103,19 +103,18 @@ for idx in range(25000, len(x_pos)):
         cam1[str(idx).zfill(5)] = np.zeros((192,320))
         cam2[str(idx).zfill(5)] = np.zeros((192,320))
 
-
     else:   
         delta_x1, delta_y1, delta_x2, delta_y2 = delta(center_x, center_y, idx)
         img_new1 = transform(delta_x1, delta_y1, c1)
         img_new2 = transform(delta_x2, delta_y2, c2)
 
-        # #Crop images to remain only the center of the melt pool
-        # img_new1 = crop(img_new1)
-        # img_new2 = crop(img_new2)
-
         # Rotate the image by -110 degrees
         img_new1 = rotate(img_new1, -110)
         img_new2 = rotate(img_new2, -110)
+
+        #Crop images to remain only the center of the melt pool
+        img_new1 = crop(img_new1)
+        img_new2 = crop(img_new2)
 
         #Save aligned images into .mat files
         cam1[str(idx).zfill(5)] = img_new1
@@ -166,10 +165,11 @@ for idx in range(25000, len(x_pos)):
 
 #Save the matlab file as hdf5 format
 # hdf5storage.savemat('Temperature Array', temp, format='7.3')
-# hdf5storage.savemat('Camera1_alignedcrop', cam1, format='7.3')
-# hdf5storage.savemat('Camera2_alignedcrop', cam2, format='7.3')
-hdf5storage.savemat('Camera1_rot-110', cam1, format='7.3')
-hdf5storage.savemat('Camera2_rot-110', cam2, format='7.3')
+hdf5storage.savemat('Camera1_alignedcrop_200mu', cam1, format='7.3')
+hdf5storage.savemat('Camera2_alignedcrop_200mu', cam2, format='7.3')
+# hdf5storage.savemat('Camera1_rot-110', cam1, format='7.3')
+# hdf5storage.savemat('Camera2_rot-110', cam2, format='7.3')
+# hdf5storage.savemat('Temperature Array_rotated', temp, format='7.3')
 
 
 
