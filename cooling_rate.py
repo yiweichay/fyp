@@ -4,7 +4,6 @@ import numpy as np
 import hdf5storage
 import matplotlib.pyplot as plt
 #plt.style.use('classic')
-from scipy.interpolate import interp1d
 
 #Load and read files
 df = pd.read_csv('C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/layer8/processed.csv')
@@ -13,7 +12,7 @@ y_pos = np.array(df['y_pos'][:])
 t = np.array(df['time'][:])
 
 #Read temperature array .mat file
-temp = 'C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/Camera2_aligned.mat'
+temp = 'C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/Temperature Array_rotated.mat'
 
 #Mark the center of the image
 center_x = 160
@@ -33,74 +32,70 @@ def mmToPixel(x, y):
     y = int(np.ceil(np.abs((y-(-71))/pix)) - 1)
     return x,y
 
-frame = int(input("Frame number:"))
-x = x_pos[frame]
-y = y_pos[frame]
-x,y = mmToPixel(x,y)
+# frame = int(input("Frame number:"))
+# x = x_pos[frame]
+# y = y_pos[frame]
+# x,y = mmToPixel(x,y)
 # x = float(input("Input x position: "))
 # y = float(input("Input y position: "))
 
 # print(x,y)
 
 
-temp_array = []
-time = []
+# temp_array = []
+# time = []
+cr = {}
 
-# for frame in range(200, 400):
-#     x = x_pos[frame]
-#     y = y_pos[frame]
-#     x,y = mmToPixel(x,y)
-#     temp_array = []
-#     time = []
-with h5py.File(temp, 'r') as h:
-    for idx in list(h.keys())[frame-10:frame+25]:  
-        T_calculated = np.fliplr(np.rot90(h[idx][:], 3)) #rotate clockwise by 90 degrees
-        x_mu = x_pos[int(idx)]
-        y_mu = y_pos[int(idx)] 
-        globx, globy = mmToPixel(x_mu, y_mu)
+for frame in range(30000, len(x_pos)):
+    x = x_pos[frame]
+    y = y_pos[frame]
+    x,y = mmToPixel(x,y)
+    temp_array = []
+    time = []
+    with h5py.File(temp, 'r') as h:
+        for idx in list(h.keys())[frame:frame+25]:  
+            T_calculated = np.fliplr(np.rot90(h[idx][:], 3)) #rotate clockwise by 90 degrees
+            x_mu = x_pos[int(idx)]
+            y_mu = y_pos[int(idx)] 
+            globx, globy = mmToPixel(x_mu, y_mu)
 
-        globMat_copy = np.zeros((600,800))
-        if globMat_copy[globy-center_y:globy+center_y, globx-center_x:globx+center_x].shape == (192, 320):
-            globMat_copy[globy-center_y:globy+center_y, globx-center_x:globx+center_x] = T_calculated
-        else:
-            continue
-        #globMat = np.add(globMat, globMat_copy)
+            globMat_copy = np.zeros((600,900))
+            if globMat_copy[globy-center_y:globy+center_y, globx-center_x:globx+center_x].shape == (192, 320):
+                globMat_copy[globy-center_y:globy+center_y, globx-center_x:globx+center_x] = T_calculated
+            else:
+                continue
+            #globMat = np.add(globMat, globMat_copy)
 
-        temp_array.append(globMat_copy[y,x])
-        time.append(t[int(idx)])
-        #if int(idx) % 1000 == 0:
-        #    print(int(idx))
+            temp_array.append(globMat_copy[y,x])
+            time.append(t[int(idx)])
+    if int(frame) % 1000 == 0:
+        print(int(frame))
 
-temp_array = np.array(temp_array)
-temp_array = temp_array.astype(float)
-temp_array[temp_array == 0] = np.nan
-time = np.array(time)
+    temp_array = np.array(temp_array)
+    temp_array = temp_array.astype(float)
+    temp_array[temp_array == 0] = np.nan
+    time = np.array(time)
 
-idx = np.isfinite(time) & np.isfinite(temp_array)
+    idx = np.isfinite(time) & np.isfinite(temp_array)
+    if not idx.any():
+        # print(frame, 'Cooling Rate:',0)
+        cr[str(frame).zfill(5)] = 0
 
-fig,ax = plt.subplots()
+    else:
+        slope, intercept = np.polyfit(time[idx], temp_array[idx], 1) #Line of best fit
+        # print(frame, 'Cooling Rate:', slope*10**-6, 'Intercept:', intercept)
+        cr[str(frame).zfill(5)] = slope*10**-6
 
-slope, intercept = np.polyfit(time[idx], temp_array[idx], 1) #Line of best fit
-print(frame, 'Cooling Rate:', slope*10**-6, 'Intercept:', intercept)
-
-plt.plot(time, temp_array, label='Cooling curve')
-plt.plot(time, slope*time+intercept, c='orange', label='Line of Best Fit')
-ax.legend()
-
-plt.xlabel('Time (s)')
-plt.ylabel('Temperature (K)')
-plt.title('Cooling Curve: c1 f79')
-plt.show()
+hdf5storage.savemat('Cooling Rates', cr, format='7.3')
 
 '''
-# --------------------------------------------------
-# Print the temperature plot on build plate
-# --------------------------------------------------
-
-f, ax = plt.subplots()
-#globMat = globMat.tolist()
-gm = ax.imshow(globMat)
-plt.imsave('test.png', globMat)
-plt.colorbar(gm)
-plt.show()
+To print the cooling rate graph for each frame
 '''
+# plt.plot(time, temp_array, label='Cooling curve')
+# plt.plot(time, slope*time+intercept, c='orange', label='Line of Best Fit')
+# plt.legend()
+
+# plt.xlabel('Time (s)')
+# plt.ylabel('Temperature (K)')
+# plt.title('Cooling Curve: f500') 
+# plt.show()
