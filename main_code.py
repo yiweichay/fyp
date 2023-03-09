@@ -2,7 +2,7 @@ import pandas as pd
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
-#plt.style.use('classic')
+plt.style.use('classic')
 from temp_intensity import Temperature
 from scipy.stats import norm
 
@@ -74,7 +74,7 @@ f, ax = plt.subplots(2,3,figsize=(10,10))
 f.tight_layout()
 plt.subplots_adjust(bottom = 0.25)
 ax_slider = f.add_axes([0.25, 0.1, 0.65, 0.03])
-imgslider = Slider(ax=ax_slider, label='Frame Number', valmin=2000, valmax=3000, valinit=0, valstep=1)
+imgslider = Slider(ax=ax_slider, label='Frame Number', valmin=2885, valmax=3397, valinit=0, valstep=1)
 
 #Add colorbar
 global colorbar_set #this is like volatile in C, for interrupts
@@ -125,17 +125,6 @@ def update(idx):
     R = np.divide(img_new2, img_new1)
     R[np.isnan(R)] = 0
     R[np.isinf(R)] = 0
-    '''
-    new = R.copy()
-    new[:70, :] = 0
-    new[130:, :] = 0
-    new[:, :120] = 0
-    new[:, 200:] = 0
-    new = new[70:130, 120:200] #crop image
-    #print(new.tolist())
-    #print(new.max())
-    #print(np.where(new == new.max()))
-    '''
     IR = ax[0,1].imshow(R, vmax=3)
     ax[0,1].grid(True, which='major', linestyle='-')
     ax[0,1].set_title('Intensity Ratio: c2/c1')
