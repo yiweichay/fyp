@@ -13,6 +13,7 @@ y_pos = np.array(df['y_pos'][:])
 # print(x_pos.max(), x_pos.min())
 # print(y_pos.max(), y_pos.min())
 E_0 = np.array(df['E_0'][:])
+
 #Temperature initialisation
 root = 'C:/Users/cyiwe/OneDrive - Imperial College London/ME4/FYP/fyp/config_matfile.mat'
 
@@ -72,14 +73,16 @@ from matplotlib.widgets import Slider
 #Adjust the main plot to make room for the slider
 f, ax = plt.subplots(2,3,figsize=(10,10))
 f.tight_layout()
+f.patch.set_facecolor('white')
 plt.subplots_adjust(bottom = 0.25)
 ax_slider = f.add_axes([0.25, 0.1, 0.65, 0.03])
-imgslider = Slider(ax=ax_slider, label='Frame Number', valmin=2885, valmax=3397, valinit=0, valstep=1)
+imgslider = Slider(ax=ax_slider, label='Frame Number', valmin=650, valmax=700, valinit=0, valstep=1) #Change frame range with valmin and valmax
 
 #Add colorbar
 global colorbar_set #this is like volatile in C, for interrupts
 colorbar_set = False
 
+#Execute slider for all frames
 def update(idx):
     with h5py.File(pth, 'r') as h:
         #print(h.keys())
@@ -92,7 +95,11 @@ def update(idx):
     
     #Check if there are values for the laser position
     if np.all(centroid[idx]) == False:
-        return
+        # return
+        centroid[idx,0] = 144
+        centroid[idx,1] = 109
+        centroid[idx,2] = 130
+        centroid[idx,3] = 89
     
     #Image alignment
     delta_x1, delta_y1, delta_x2, delta_y2 = delta(center_x, center_y, idx)
@@ -126,12 +133,12 @@ def update(idx):
     R[np.isnan(R)] = 0
     R[np.isinf(R)] = 0
     IR = ax[0,1].imshow(R, vmax=3)
-    ax[0,1].grid(True, which='major', linestyle='-')
-    ax[0,1].set_title('Intensity Ratio: c2/c1')
+    # ax[0,1].grid(True, which='major', linestyle='-')
+    ax[0,1].set_title('Intensity Ratio: $I_1$ / $I_2$') #this is actually c2/c1
 
     #Plotting temperature - intensity graph
     #Reshape R into 1d vector
-    R = np.reshape(R, [61440, 1])
+    R = np.reshape(R, [61440,])
     
     #include changing x and y position
     x_mu = x_pos[idx]
@@ -142,7 +149,7 @@ def update(idx):
     T_model.fit(x_mu, y_mu)
     T_calculated = T_model.predict(R)
     ax[1,1].clear()
-    ax[1,1].scatter(R, T_calculated)
+    ax[1,1].plot(R, T_calculated)
     ax[1,1].set_xlabel('Intensity ratio $I_1$ / $I_2$')
     ax[1,1].set_ylabel('Temperature (K)')
     ax[1,1].set(xlim=(0, 3), ylim=(0, 5000))
@@ -164,14 +171,15 @@ def update(idx):
     #Histogram to check noise threshold
     M = np.reshape(M, [61440,1])
     ax[1,2].clear()
-    x = np.linspace(0, 61440, 61440)
-    ax[1,2].scatter(x, M, s=4)
-    #ax[1,2].axhline(y = 500, color = 'r', linestyle = '-')
-    ax[1,2].set_xlabel('Pixel Number')
-    ax[1,2].set_ylabel('Intensity Multiplication')
-    #ax[1,2].hist(M, bins=[0, 100, 200, 300, 400, 500])
-    #ax[1,2].set_xlabel('Pixel Intensity')
-    #ax[1,2].set_ylabel('Frequency')
+    # x = np.linspace(0, 61440, 61440)
+    # ax[1,2].scatter(x, M, s=4)
+    # ax[1,2].axhline(y = 500, color = 'r', linestyle = '-')
+    # ax[1,2].set_xlabel('Pixel Number')
+    # ax[1,2].set_ylabel('Multiplication of Pixel Intensities')
+    ax[1,2].hist(M, bins=[0, 100, 200, 300, 400, 500])
+    ax[1,2].set_xlabel('Pixel Intensity')
+    ax[1,2].set_ylabel('Frequency')
+    ax[1,2].set_ylim(0,65000)
     a = M[:20000]
     print(np.mean(a))
     print(np.std(a))

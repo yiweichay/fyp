@@ -1,3 +1,7 @@
+'''
+This code is to save the temperature arrays of each frame into a dictionary, saved as a .mat file
+'''
+
 import pandas as pd
 import h5py
 import numpy as np
@@ -54,7 +58,7 @@ def transform(delta_x, delta_y, img):
 def denoise(c1, c2, M):
     for i in range(0,192):
         for j in range(0,320):
-            if M[i,j] <= 700:
+            if M[i,j] <= 500:
                 c1[i,j] = 0
                 c2[i,j] = 0
     return c1, c2
@@ -78,9 +82,9 @@ center_x = 160
 center_y = 96
 
 #Align images, calculate intensity ratio and save to .mat file
-# temp = {}
-cam1 = {}
-cam2 = {}
+temp = {}
+# cam1 = {}
+# cam2 = {}
 
 # globMat = np.zeros((600,800))
 # pix = 0.02 #1 pixel = 0.02mm
@@ -93,17 +97,22 @@ for idx in range(25000, len(x_pos)):
     
     #Check if the image pixels are correct
     if c1.shape and c2.shape != (192, 320):
-        # temp[str(idx).zfill(5)] = np.zeros((192,320))
-        cam1[str(idx).zfill(5)] = np.zeros((192,320))
-        cam2[str(idx).zfill(5)] = np.zeros((192,320))
+        temp[str(idx).zfill(5)] = np.zeros((192,320))
+        # cam1[str(idx).zfill(5)] = np.zeros((192,320))
+        # cam2[str(idx).zfill(5)] = np.zeros((192,320))
 
     #Check if there are values for the laser position
-    elif np.all(centroid[idx]) == False:
-        # temp[str(idx).zfill(5)] = np.zeros((192,320))
-        cam1[str(idx).zfill(5)] = np.zeros((192,320))
-        cam2[str(idx).zfill(5)] = np.zeros((192,320))
+    else:
+        if np.all(centroid[idx]) == False:
+            centroid[idx,0] = 144
+            centroid[idx,1] = 109
+            centroid[idx,2] = 130
+            centroid[idx,3] = 89
 
-    else:   
+        # temp[str(idx).zfill(5)] = np.zeros((192,320))
+        # cam1[str(idx).zfill(5)] = np.zeros((192,320))
+        # cam2[str(idx).zfill(5)] = np.zeros((192,320))
+   
         delta_x1, delta_y1, delta_x2, delta_y2 = delta(center_x, center_y, idx)
         img_new1 = transform(delta_x1, delta_y1, c1)
         img_new2 = transform(delta_x2, delta_y2, c2)
@@ -113,13 +122,13 @@ for idx in range(25000, len(x_pos)):
         img_new2 = rotate(img_new2, -110)
 
         #Crop images to remain only the center of the melt pool
-        img_new1 = crop(img_new1)
-        img_new2 = crop(img_new2)
+        # img_new1 = crop(img_new1)
+        # img_new2 = crop(img_new2)
 
         #Save aligned images into .mat files
-        cam1[str(idx).zfill(5)] = img_new1
-        cam2[str(idx).zfill(5)] = img_new2
-        '''
+        # cam1[str(idx).zfill(5)] = img_new1
+        # cam2[str(idx).zfill(5)] = img_new2
+        
         #Check by multiplying the pixels
         M = np.multiply(img_new1, img_new2)
 
@@ -145,7 +154,7 @@ for idx in range(25000, len(x_pos)):
 
         #Save temperature to .mat file
         temp[str(idx).zfill(5)] = T_calculated
-        '''
+        
         '''
         #Convert xpos and ypos to pixels
         globx = int(np.ceil((x_mu-93)/pix) - 1)
@@ -164,9 +173,9 @@ for idx in range(25000, len(x_pos)):
             print(idx)
 
 #Save the matlab file as hdf5 format
-# hdf5storage.savemat('Temperature Array', temp, format='7.3')
-hdf5storage.savemat('Camera1_alignedcrop_200mu', cam1, format='7.3')
-hdf5storage.savemat('Camera2_alignedcrop_200mu', cam2, format='7.3')
+hdf5storage.savemat('Temperature Array_centroids_added', temp, format='7.3')
+# hdf5storage.savemat('Camera1_alignedcrop_200mu', cam1, format='7.3')
+# hdf5storage.savemat('Camera2_alignedcrop_200mu', cam2, format='7.3')
 # hdf5storage.savemat('Camera1_rot-110', cam1, format='7.3')
 # hdf5storage.savemat('Camera2_rot-110', cam2, format='7.3')
 # hdf5storage.savemat('Temperature Array_rotated', temp, format='7.3')
