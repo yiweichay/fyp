@@ -1,5 +1,8 @@
 '''
-This code is to save the temperature arrays of each frame into a dictionary, saved as a .mat file
+This code is to:
+1. Save the temperature arrays of each frame into a dictionary, saved as a .mat file
+2. Plot the temperature summation plot of each layer with the temperature arrays (longer runtime)
+    - use temp_sum.py to input the calculated temperature arrays for faster runtime
 '''
 
 import pandas as pd
@@ -63,6 +66,7 @@ def denoise(c1, c2, M):
                 c2[i,j] = 0
     return c1, c2
 
+#Crop the image to only retain the center of the melt pool - did not end up using this
 def crop(img):
     img[:91,:] = 0
     img[101:,:] = 0
@@ -156,24 +160,30 @@ for idx in range(25000, len(x_pos)):
         temp[str(idx).zfill(5)] = T_calculated
         
         '''
-        #Convert xpos and ypos to pixels
-        globx = int(np.ceil((x_mu-93)/pix) - 1)
-        globy = int(np.ceil(np.abs((y_mu-(-71))/pix)) - 1)
-
-        #print('globx:', globx)
-        #print('globy:', globy)
-        globMat_copy = np.zeros((600,800))
-        if globMat_copy[globy-center_y:globy+center_y, globx-center_x:globx+center_x].shape == (192, 320):
-            globMat_copy[globy-center_y:globy+center_y, globx-center_x:globx+center_x] = T_calculated
-
-        #globTemp[str(idx).zfill(5)] = globMat_copy
-        globMat = np.add(globMat, globMat_copy)
+        To print the temperature summation plot for each layer, comment out lines 161 to 172 and run whole code,
+        but the temperature arrays are recalculated for each frame (roughly 2 hours runtime), 
+        hence the temperature arryas are saved for faster runtime
         '''
+
+        # #Convert xpos and ypos to pixels
+        # globx = int(np.ceil((x_mu-93)/pix) - 1)
+        # globy = int(np.ceil(np.abs((y_mu-(-71))/pix)) - 1)
+
+        # #print('globx:', globx)
+        # #print('globy:', globy)
+        # globMat_copy = np.zeros((600,800))
+        # if globMat_copy[globy-center_y:globy+center_y, globx-center_x:globx+center_x].shape == (192, 320):
+        #     globMat_copy[globy-center_y:globy+center_y, globx-center_x:globx+center_x] = T_calculated
+
+        # #globTemp[str(idx).zfill(5)] = globMat_copy
+        # globMat = np.add(globMat, globMat_copy)
+        
+        #This is used to check on the status of the code
         if idx % 1000 == 0:
             print(idx)
 
 #Save the matlab file as hdf5 format
-hdf5storage.savemat('Temperature Array_centroids_added', temp, format='7.3')
+# hdf5storage.savemat('Temperature Array_centroids_added', temp, format='7.3')
 # hdf5storage.savemat('Camera1_alignedcrop_200mu', cam1, format='7.3')
 # hdf5storage.savemat('Camera2_alignedcrop_200mu', cam2, format='7.3')
 # hdf5storage.savemat('Camera1_rot-110', cam1, format='7.3')

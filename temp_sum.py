@@ -1,7 +1,11 @@
+'''
+This code is only used to plot the temperature summation graph for each layer, 
+can also be used for other summation plots
+'''
+
 import pandas as pd
 import h5py
 import numpy as np
-import hdf5storage
 import matplotlib.pyplot as plt
 plt.style.use('classic')
 from temp_intensity import Temperature
